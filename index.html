@@ -27,20 +27,20 @@ button:focus-visible,a:focus-visible,.art:focus-visible{outline:2px solid var(--
 #stage{position:fixed;inset:0;overflow:hidden;perspective:var(--p,900px);background:var(--bg)}
 #world{position:absolute;left:50%;top:50%;width:0;height:0;transform-style:preserve-3d}
 .pl{position:absolute;left:0;top:0;backface-visibility:hidden}
-.wl{background:linear-gradient(#fdfcfb 0%,#f3f1ed 90.5%,#d8d4cc 90.5%,#d8d4cc 91%,#f1efea 91%)}
-.wr{background:linear-gradient(#fefdfc 0%,#f6f4f0 90.5%,#dcd8d0 90.5%,#dcd8d0 91%,#f4f2ee 91%)}
-.fl{background:linear-gradient(90deg,rgba(255,255,255,0) 20%,rgba(255,255,255,.7) 50%,rgba(255,255,255,0) 80%) 0 0/var(--W) 100%,repeating-linear-gradient(90deg,#ecebe7 0 138px,#e0ddd7 138px 140px)}
-.ce{background:linear-gradient(90deg,#f1f0ec,#fbfbfa 42%,#fff 48%,#fff 52%,#fbfbfa 58%,#f1f0ec) 0 0/var(--W) 100%}
+.wl{background:#f4f3ef}.wr{background:#f8f7f4}
+.fl{background:#e9e7e2}.ce{background:#f7f6f3}
+.bb{background:#d6d2ca}
+#corr{position:absolute;left:50%;top:50%;overflow:visible;will-change:transform}
+#world:not(.walls) :is(.wl,.wr,.fl,.ce,.bb,.lt,.fs){display:none}.lt{background:#fff}.fs{background:#efeee9}
 .end{display:grid;place-items:center;align-content:center;gap:22px;text-align:center;background:radial-gradient(ellipse at 50% 35%,#fff,#f4f2ee 75%)}
 .end img{height:46%;width:auto;box-shadow:0 30px 60px rgba(30,25,20,.2)}
 .end span{color:var(--mute);font-size:22px}
 
 .art{cursor:pointer;outline:none}
-.art .frame{position:absolute;inset:0;border:var(--fw,10px) solid var(--fc,#1d1b19);background:#fff;padding:7%;box-shadow:0 18px 40px rgba(30,25,20,.22),0 3px 8px rgba(30,25,20,.15);transition:box-shadow .4s,transform .4s}
-.art:hover .frame{transform:scale(1.025);box-shadow:0 28px 60px rgba(30,25,20,.28),0 4px 10px rgba(30,25,20,.18)}
+.art .frame{position:absolute;inset:0;border:var(--fw,10px) solid var(--fc,#1d1b19);background:#fff;padding:7%;box-shadow:0 10px 22px rgba(30,25,20,.2);transition:transform .4s}
+.art:hover .frame{transform:scale(1.025)}
 .art svg{display:block;width:100%;height:100%}
-.art::before{content:"";position:absolute;inset:-40% -35% 30%;background:radial-gradient(ellipse at 50% 8%,rgba(255,236,200,.55),rgba(255,236,200,0) 65%);pointer-events:none}
-.art::after{content:"";position:absolute;top:-34px;left:32%;right:32%;height:7px;border-radius:4px;background:#2a2826;box-shadow:0 6px 14px rgba(255,230,180,.8)}
+.art::after{content:"";position:absolute;top:-34px;left:32%;right:32%;height:7px;border-radius:4px;background:#2a2826;}
 .plaque{position:absolute;top:calc(100% + 22px);right:0;background:#fff;padding:7px 12px;font-size:15px;line-height:1.35;box-shadow:0 2px 6px rgba(0,0,0,.08);white-space:nowrap}
 .plaque small{display:block;color:var(--mute);font-size:13px}
 
@@ -122,7 +122,7 @@ body.focus #hero,body.focus #toast{visibility:hidden}
 </header>
 <p class="note">لوحات وأسعار نموذجية للعرض</p>
 
-<div id="stage"><div id="world"></div></div>
+<div id="stage"><svg id="corr" width="1" height="1" aria-hidden="true"></svg><div id="world"></div></div>
 
 <section id="hero">
   <img src="logo.webp" alt="زخرف" width="166" height="290">
@@ -242,6 +242,7 @@ function build(){
   viewDist = G*.95; start = G*1.15;
   zEnd = -(start + (N-1)*G + G/2 + G*1.3);
   travel = -zEnd - P*1.4;
+  if (vw < 700){ FOG0 = 1500; FOG1 = 2200 } else { FOG0 = 2600; FOG1 = 3400 }
   stage.style.setProperty('--p', P+'px'); stage.style.setProperty('--W', Wd+'px');
   world.innerHTML=''; items=[];
   // كل عنصر: موضعه x,z ونصف امتداده على المحورين لحساب الرؤية
@@ -250,10 +251,14 @@ function build(){
     const zc=z-SEG/2;
     add('wl',-Wd/2,0,zc,SEG+2,Hc,'rotateY(90deg)',0,SEG/2);
     add('wr',Wd/2,0,zc,SEG+2,Hc,'rotateY(-90deg)',0,SEG/2);
+    add('bb',-Wd/2+1,Hc/2-Hc*.045,zc,SEG+2,3,'rotateY(90deg)',0,SEG/2);
+    add('bb',Wd/2-1,Hc/2-Hc*.045,zc,SEG+2,3,'rotateY(-90deg)',0,SEG/2);
     const n = Math.ceil(Wd/420), tw = Wd/n;   // بلاطات صغيرة عشان الالتفاف يبان سليم
     for(let k=0;k<n;k++){ const x = -Wd/2 + tw*(k+.5);
-      add('fl',x,Hc/2,zc,tw+2,SEG+2,'rotateX(90deg)',tw/2,SEG/2).style.backgroundPosition=`${-k*tw}px 0`;
-      add('ce',x,-Hc/2,zc,tw+2,SEG+2,'rotateX(-90deg)',tw/2,SEG/2).style.backgroundPosition=`${-k*tw}px 0`; }
+      add('fl',x,Hc/2,zc,tw+2,SEG+2,'rotateX(90deg)',tw/2,SEG/2);
+      add('ce',x,-Hc/2,zc,tw+2,SEG+2,'rotateX(-90deg)',tw/2,SEG/2); }
+    add('lt',0,-Hc/2+1,zc,Wd*.1,SEG+2,'rotateX(-90deg)',Wd*.05,SEG/2);
+    add('fs',0,Hc/2-1,zc,Wd*.34,SEG+2,'rotateX(90deg)',Wd*.17,SEG/2);
   }
   add('end',0,0,zEnd,Wd,Hc,'',Wd/2,0,'<img src="logo.webp" alt="زخرف"><span>نهاية الممر — كل اللوحات متاحة للطلب</span>');
   ART.forEach((a,i)=>{
@@ -266,7 +271,27 @@ function build(){
     e.onclick=ev=>{ev.stopPropagation(); focusOn(i)}; e.onkeydown=ev=>{if(ev.key==='Enter')focusOn(i)};
     Object.assign(a,{x,y,z,w,h,bay,left});
   });
+  drawCorridor();
   document.getElementById('track').style.height = (innerHeight + travel*K) + 'px';
+}
+
+// الممر ثابت الشكل وانت ماشي، فبيترسم مرة واحدة كخلفية بنفس المنظور
+// والحيطان ثلاثية الأبعاد بتظهر بس وقت التفات الكاميرا
+function drawCorridor(){
+  const S = 5, s1 = P/(P+FOG0), sm = P/(P+FOG0+FOG1/2), s2 = P/(P+FOG0+FOG1), w = Wd/2, h = Hc/2, yb = h - Hc*.045;
+  let defs = '', body = '', n = 0;
+  const tri = (pts, col, ax, base) => { const id = 'g'+(n++), k = ax==='x' ? ['x1','x2'] : ['y1','y2'];
+    defs += `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" ${ax==='x'?'y1="0" y2="0"':'x1="0" x2="0"'} ${k[0]}="${base*s1}" ${k[1]}="${base*s2}"><stop offset="0" stop-color="${col}"/><stop offset="${(s1-sm)/(s1-s2)}" stop-color="${col}" stop-opacity=".5"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient>`;
+    body += `<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="url(#${id})"/>`; };
+  tri([[-w*S,-h*S],[-w*S,h*S],[0,0]], '#f4f3ef','x',-w);
+  tri([[w*S,-h*S],[w*S,h*S],[0,0]], '#f8f7f4','x',w);
+  tri([[-w*S,h*S],[w*S,h*S],[0,0]], '#e9e7e2','y',h);
+  tri([[-w*S,-h*S],[w*S,-h*S],[0,0]], '#f7f6f3','y',-h);
+  tri([[-Wd*.17*S,h*S],[Wd*.17*S,h*S],[0,0]], '#efeee9','y',h);
+  tri([[-Wd*.05*S,-h*S],[Wd*.05*S,-h*S],[0,0]], '#ffffff','y',-h);
+  tri([[-w*S,(yb-1.5)*S],[-w*S,(yb+1.5)*S],[0,0]], '#d6d2ca','x',-w);
+  tri([[w*S,(yb-1.5)*S],[w*S,(yb+1.5)*S],[0,0]], '#d6d2ca','x',w);
+  document.getElementById('corr').innerHTML = `<defs>${defs}</defs>${body}`;
 }
 
 // ===== السكرول والكاميرا =====
@@ -289,7 +314,7 @@ const bayAt = cz => Math.max(0, Math.min(N-1, Math.round((cz + viewDist - start 
 
 // V = الكاميرا: x,y موضعها، z إزاحة الممر، yaw التفاتها
 const V = {x:0,y:0,z:0,yaw:0};
-let mode = 'walk', current = -1, mx=.5,my=.5,rx=0,ry=0,lastBay=-1;
+let lastTf = '', lastWalls = null, corr = document.getElementById('corr'), FOG0 = 2600, FOG1 = 3400, mode = 'walk', current = -1, mx=.5,my=.5,rx=0,ry=0,lastBay=-1;
 addEventListener('pointermove',e=>{mx=e.clientX/innerWidth;my=e.clientY/innerHeight});
 const cap=document.getElementById('cap'), prog=document.getElementById('prog'), outro=document.getElementById('outro'), hero=document.getElementById('hero'), panel=document.getElementById('panel'), toast=document.getElementById('toast');
 
@@ -298,15 +323,20 @@ function render(t){
   if (mode==='walk') V.z = camFor(scrollPos());
   const k = mode==='walk' ? 1 : .35;
   if(!reduce){ rx += ((my-.5)*2.2*k - rx)*.05; ry += ((mx-.5)*-5*k - ry)*.05; }
-  world.style.transform = `translateZ(${P}px) rotateX(${rx}deg) rotateY(${V.yaw+ry}deg) translateZ(${-P}px) translate3d(${-V.x}px,${-V.y}px,${V.z}px)`;
+  const tf = `translateZ(${P}px) rotateX(${rx.toFixed(2)}deg) rotateY(${(V.yaw+ry).toFixed(2)}deg) translateZ(${-P}px) translate3d(${V.x.toFixed(1)*-1}px,${V.y.toFixed(1)*-1}px,${V.z.toFixed(1)}px)`;
+  if (tf === lastTf){ requestAnimationFrame(render); return; }
+  lastTf = tf; world.style.transform = tf;
+  const walls = mode !== 'walk';
+  if (walls !== lastWalls){ lastWalls = walls; world.classList.toggle('walls', walls); corr.style.visibility = walls ? 'hidden' : 'visible' }
+  if (!walls) corr.style.transform = `translate(${(-P*Math.tan(ry*D2R)).toFixed(1)}px,${(P*Math.tan(rx*D2R)).toFixed(1)}px)`;
   const s = Math.sin(V.yaw*D2R), c = Math.cos(V.yaw*D2R), as=Math.abs(s), ac=Math.abs(c);
   for (const it of items){
     const vx = it.x - V.x, vz = it.z + V.z - P;
     const depth = vx*s - vz*c, ext = as*it.hx + ac*it.hz;   // العمق أمام عين الكاميرا
-    if (depth + ext < 2 || depth - ext > P + 6200){ if(it.v!==0){it.e.style.visibility='hidden';it.v=0} continue; }
+    if (depth + ext < 2 || depth - ext > P + FOG0 + FOG1){ if(it.v!==0){it.e.style.visibility='hidden';it.v=0} continue; }
     if(it.v!==1){it.e.style.visibility='visible';it.v=1}
-    const d = depth - P, o = d < 2600 ? 1 : Math.max(0, 1-(d-2600)/3400);
-    if (it.o!==o){ it.e.style.opacity = o.toFixed(3); it.o=o }
+    const d = depth - P, o = d < FOG0 ? 1 : Math.max(0, +(1-(d-FOG0)/FOG1).toFixed(2));
+    if (it.o!==o){ it.e.style.opacity = o; it.o=o }
   }
   const p = V.z/travel;
   prog.style.transform = `scaleX(${Math.min(1,Math.max(0,p))})`;
@@ -408,7 +438,7 @@ document.getElementById('grid').onclick=e=>{const c=e.target.closest('.card'); i
 document.getElementById('allBtn').onclick=openGrid;
 document.getElementById('all2').onclick=openGrid;
 
-let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{const p=camFor(scrollPos())/travel;build();items.forEach(it=>{it.v=it.o=undefined});setScroll(p*travel,true);lastBay=-1;if(mode==='focus'){Object.assign(V,focusTarget(ART[current]))}},200)});
+let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{const p=camFor(scrollPos())/travel;build();items.forEach(it=>{it.v=it.o=undefined});lastTf='';setScroll(p*travel,true);lastBay=-1;if(mode==='focus'){Object.assign(V,focusTarget(ART[current]))}},200)});
 build();
 requestAnimationFrame(render);
 }
